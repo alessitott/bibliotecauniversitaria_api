@@ -65,3 +65,62 @@ class PrestamosMultaAPIView(APIView):
 				mensaje = "Retraso grave, revisar con administración"
 
 		return Response({'diasRetraso': dias, 'multa': multa, 'mensaje': mensaje})
+
+
+class MesaCuentaTotalAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        precios = request.data.get('precio', [])
+
+        if not isinstance(precios, list):
+            return Response({'error': 'precio debe ser un arreglo'}, status=400)
+
+        try:
+            precios = [float(p) for p in precios]
+        except (TypeError, ValueError):
+            return Response({'error': 'El arreglo debe contener números'}, status=400)
+
+        total = sum(precios)
+
+        if total == 0:
+            mensaje = 'vacio'
+        elif total < 20.00:
+            mensaje = 'Cuenta pequeña'
+        elif 20.00 <= total < 60.00:
+            mensaje = 'Cuenta alta'
+        else:
+            mensaje = 'Cuenta muy alta'
+
+        return Response({
+            'precio': precios,
+            'total': total,
+            'mensaje': mensaje
+        })
+
+class MesasDescuentoAPIView(APIView):
+    permission_classes=[AllowAny]
+    
+    def post(self, request):
+        
+        try: 
+            total = float(request.data.get('total',0))
+            porcentaje = int(request.data.get('porcentaje', 0))
+        except(TypeError,ValueError):
+             return Response({'detail':'Ingrese los valores correctamente'},status=status.HTTP_400_BAD_REQUEST)
+        
+       
+        if porcentaje == 0:
+            return Response({'detail':'Ingrese un numero mayor a 0'},status=status.HTTP_400_BAD_REQUEST)
+        else:
+            monto_descuento = total*(porcentaje/100)
+            monto_condescuento = total - monto_descuento
+            return Response({'total': total, 'porcentaje': porcentaje, 'Monto con descuento': monto_condescuento})
+            
+        
+            
+          
+        
+                    
+                
+                    
